@@ -75,7 +75,7 @@ describe('pos', () => {
     let cartItems = buildCartItems(inputs, allItems);
     let promotions = loadPromotions();
 
-    let total = buildReceiptItems(cartItems, promotions[0].barcode);
+    let total = buildReceiptItems(cartItems, promotions);
 
     const expectText = [
       {cartItem: cartItems[0], saved: 3.00, subtotal: 12.00},

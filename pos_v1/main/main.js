@@ -1,10 +1,8 @@
-
-
 function printReceipt(tags) {
   let allItems = loadAllItems();
   let cartItems = buildCartItems(tags, allItems);
   let promotions = loadPromotions();
-  let itemsSubtotal = buildReceiptItems(cartItems, promotions[0].barcode);
+  let receiptItems = buildReceiptItems(cartItems, promotions);
 }
 function buildCartItems(tags, allItems) {
   let cartItems = [];
@@ -24,26 +22,24 @@ function buildCartItems(tags, allItems) {
   return cartItems;
 }
 
-
-function buildReceiptItems(cartItems, barcodes) {
-  let itemsSubtotal = [];
-
-  for (let cartItem of cartItems) {
-
-    let subtotal = cartItem.item.price * cartItem.count;
-
-    if (cartItem.count > 2) {
-      let tag = barcodes.find(barcode => barcode === cartItem.item.barcode);
-
-      if (tag) {
-        let saved = cartItem.item.price;
-        itemsSubtotal.push({cartItem: cartItem, saved: saved, subtotal: subtotal - saved})
-      }
-    } else {
-      itemsSubtotal.push({cartItem: cartItem, saved: 0, subtotal: subtotal})
-    }
-  }
-  return itemsSubtotal;
+function buildReceiptItems(cartItems, promotions) {
+  return cartItems.map(cartItem=> {
+    let promotionType = getPromotionType(cartItem.item.barcode, promotions);
+    let {saved, subtotal} = discount(cartItem, promotionType);
+    return {cartItem, saved, subtotal};
+  });
 }
+function getPromotionType(barcode, promotions) {
+  let promotion = promotions.find(promotion=>promotion.barcode.includes(barcode));
+  return promotion ? promotion.type : '';
 
-
+}
+function discount(cartItem, promotionType) {
+  let freeItemCount = 0;
+  if (promotionType === 'BUY_TWO_GET_ONE_FREE') {
+    freeItemCount = parseInt(cartItem.count / 3);
+  }
+  let saved = freeItemCount * cartItem.item.price;
+  let subtotal = cartItem.count * cartItem.item.price - saved;
+  return {saved, subtotal}
+}
